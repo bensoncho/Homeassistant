@@ -62,5 +62,3 @@ class LineNotificationService(BaseNotificationService):
         r=requests.Session().post(BASE_URL, headers=headers, files=file, data=payload)
         if r.text != '{"status":200,"message":"ok"}':
             _LOGGER.error(r.text)
-        _LOGGER.error(r.content)
-        _LOGGER.error(file)		
