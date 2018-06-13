@@ -58,7 +58,7 @@ class LineNotificationService(BaseNotificationService):
         """Send some message."""
         data = kwargs.get(ATTR_DATA, None) 
         url = data.get(ATTR_URL) if data is not None and ATTR_URL in data else None
-        file = open(data.get(ATTR_FILE),'rb') if data is not None and ATTR_FILE in data else None
+        file = {IMAGEFILE:open(data.get(ATTR_FILE),'rb')} if data is not None and ATTR_FILE in data else None
         stkpkgid = data.get(ATTR_STKPKGID) if data is not None and ATTR_STKPKGID in data and ATTR_STKID in data else None
         stkid = data.get(ATTR_STKID) if data is not None and ATTR_STKPKGID in data and ATTR_STKID in data else None        
         headers = {AUTHORIZATION:"Bearer "+ self.access_token}
@@ -67,11 +67,10 @@ class LineNotificationService(BaseNotificationService):
                     'message':message,
                     IMAGEFULLSIZE:url,
                     IMAGETHURMBNAIL:url,
-                    IMAGEFILE:file,
                     STKPKID:stkpkgid,
                     STKID:stkid,          
                 }) 
        
-        r=requests.Session().post(BASE_URL, headers=headers, data=payload)
+        r=requests.Session().post(BASE_URL, headers=headers, files=file, data=payload)
         if r.text != '{"status":200,"message":"ok"}':
             _LOGGER.error(r.text)
