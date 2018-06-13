@@ -31,6 +31,7 @@ ATTR_FILE = 'file'
 ATTR_URL = 'url'
 IMAGEFULLSIZE = 'imageFullsize'
 IMAGETHURMBNAIL = 'imageThumbnail'
+IMAGEFILE = 'imageFile'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ACCESS_TOKEN): cv.string,
@@ -52,13 +53,17 @@ class LineNotificationService(BaseNotificationService):
         """Send some message."""
         data = kwargs.get(ATTR_DATA, None) 
         url = data.get(ATTR_URL) if data is not None and ATTR_URL in data else None
+        file = open(data.get(ATTR_FILE),'rb') if data is not None and ATTR_FILE in data else None
+        
         headers = {AUTHORIZATION:"Bearer "+ self.access_token}
+
         payload = ({
                     'message':message,
                     IMAGEFULLSIZE:url,
-                    IMAGETHURMBNAIL:url
+                    IMAGETHURMBNAIL:url,
+                    IMAGEFILE:file
                 }) 
-        file = {'imageFile':open(data.get(ATTR_FILE),'rb')} if data is not None and ATTR_FILE in data else None  
-        r=requests.Session().post(BASE_URL, headers=headers, files=file, data=payload)
+       
+        r=requests.Session().post(BASE_URL, headers=headers, data=payload)
         if r.text != '{"status":200,"message":"ok"}':
             _LOGGER.error(r.text)
