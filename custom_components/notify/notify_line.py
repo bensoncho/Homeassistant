@@ -68,7 +68,7 @@ class LineNotificationService(BaseNotificationService):
                     IMAGEFULLSIZE:url,
                     IMAGETHURMBNAIL:url,
                     IMAGEFILE:file,
-                    STKPKID:stickerPackageId,
+                    STKPKID:stkpkgid,
                     STKID:stkid,          
                 }) 
        
