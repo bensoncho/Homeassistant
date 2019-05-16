@@ -8,14 +8,12 @@ notify:
     
 With this custom component loaded, you can upload to Dropbox.
 """
-
+import json
 import requests
-import urllib.parse
-import sys
 import logging
 import voluptuous as vol
  
-from aiohttp.hdrs import AUTHORIZATION
+from aiohttp.hdrs import AUTHORIZATION, CONTENT_TYPE
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_ACCESS_TOKEN 
 from homeassistant.components.notify import (
@@ -35,7 +33,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 def get_service(hass, config, discovery_info=None):
     """Get the Line notification service."""
     access_token = config.get(CONF_ACCESS_TOKEN )
-    return LineNotificationService(access_token)
+    return DropboxNotificationService(access_token)
                                            
 class DropboxNotificationService(BaseNotificationService):
     """Implementation of a notification service for the Line Messaging service."""
@@ -47,20 +45,30 @@ class DropboxNotificationService(BaseNotificationService):
     def send_message(self, message="", **kwargs):
         """Send some message."""
         data = kwargs.get(ATTR_DATA, None) 
-        url = data.get(ATTR_URL) if data is not None and ATTR_URL in data else None
-        file = {IMAGEFILE:open(data.get(ATTR_FILE),'rb')} if data is not None and ATTR_FILE in data else None
-        stkpkgid = data.get(ATTR_STKPKGID) if data is not None and ATTR_STKPKGID in data and ATTR_STKID in data else None
-        stkid = data.get(ATTR_STKID) if data is not None and ATTR_STKPKGID in data and ATTR_STKID in data else None        
-        headers = {AUTHORIZATION:"Bearer "+ self.access_token}
+        file = data.get(ATTR_FILE) if data is not None and ATTR_FILE in data else None
+        filename = data.get(ATTR_FILENAME) if data is not None and ATTR_FILENAME in data else None
 
-        payload = ({
-                    'message':message,
-                    IMAGEFULLSIZE:url,
-                    IMAGETHURMBNAIL:url,
-                    STKPKID:stkpkgid,
-                    STKID:stkid,          
-                }) 
+        Dropbox = {
+          "path": "/" + filename,
+          "mode": "overwrite",
+          "mute": True,
+          "strict_conflict": False
+        }
+              
+      
+        file = {IMAGEFILE:open(data.get(ATTR_FILE),'rb')} if data is not None and ATTR_FILE in data else None      
+        headers = {
+                CONTENT_TYPE: "application/octet-stream",
+                AUTHORIZATION:"Bearer "+ self.access_token,
+                'Dropbox-API-Arg': json.dumps(Dropbox)
+        }
        
-        r=requests.Session().post(BASE_URL, headers=headers, files=file, data=payload)
-        if r.status_code  != 200
+        if file is not none or filename is not none:
+          with open(filename, 'rb') as f:
+            r=requests.Session().post(BASE_URL, headers=headers, data=f)
+          if r.ok  != True
             _LOGGER.error(r.text)
+        elif file is none:
+          _LOGGER.error("Missing file")
+        elif filename is none:
+          _LOGGER.error("Missing filename")
