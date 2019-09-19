@@ -13,8 +13,6 @@ With this custom component loaded, you can send messaged to line Notify.
 """
 
 import requests
-import urllib.parse
-import sys
 import logging
 import voluptuous as vol
  
